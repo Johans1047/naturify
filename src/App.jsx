@@ -10,13 +10,9 @@ const RekognitionApp = () => {
   const [uploadedImages, setUploadedImages] = useState([]);
   const [previewUrl, setPreviewUrl] = useState(null);
 
-  // Configuración AWS (estas deberían venir de variables de entorno en Amplify)
-  const AWS_CONFIG = {
-    region: 'us-east-1', // Cambia por tu región
-    inputBucket: 'my-input-bucket',
-    outputBucket: 'my-output-bucket',
-    identityPoolId: 'us-east-1:your-identity-pool-id', // Reemplaza con tu Identity Pool ID
-    apiEndpoint: 'https://your-api-gateway-endpoint.com' // Opcional: para consultar resultados
+  // Configuración de API (solo un endpoint)
+  const API_CONFIG = {
+    uploadEndpoint: import.meta.env.VITE_UPLOAD_API || 'https://6vp429ekf5.execute-api.us-east-2.amazonaws.com'
   };
 
   useEffect(() => {
@@ -50,7 +46,7 @@ const RekognitionApp = () => {
     }
   };
 
-  const uploadToS3 = async () => {
+  const uploadToAPI = async () => {
     if (!selectedFile) return;
 
     setUploading(true);
@@ -58,94 +54,62 @@ const RekognitionApp = () => {
     setError(null);
 
     try {
-      // Configurar AWS SDK (en un proyecto real, esto se haría con AWS Amplify)
-      // Por ahora simularemos la subida
+      // Crear FormData para enviar la imagen
+      const formData = new FormData();
+      formData.append('image', selectedFile);
+      formData.append('fileName', selectedFile.name);
       
-      const fileName = `${Date.now()}-${selectedFile.name}`;
+      // Simular progreso mientras se procesa
+      const progressInterval = setInterval(() => {
+        setUploadProgress(prev => Math.min(prev + Math.random() * 10, 90));
+      }, 500);
       
-      // Simular progreso de subida
-      const simulateUpload = () => {
-        return new Promise((resolve) => {
-          let progress = 0;
-          const interval = setInterval(() => {
-            progress += Math.random() * 20;
-            if (progress >= 100) {
-              progress = 100;
-              clearInterval(interval);
-              resolve();
-            }
-            setUploadProgress(Math.min(progress, 100));
-          }, 200);
-        });
-      };
+      // Subir y procesar en el mismo endpoint
+      const response = await fetch(API_CONFIG.uploadEndpoint, {
+        method: 'POST',
+        body: formData
+      });
 
-      await simulateUpload();
+      clearInterval(progressInterval);
+      setUploadProgress(100);
 
-      // Agregar a la lista de imágenes subidas
+      if (!response.ok) {
+        throw new Error(`Error ${response.status}: ${response.statusText}`);
+      }
+
+      const result = await response.json();
+      
+      // Agregar a la lista con resultados ya listos
       const newImage = {
         id: Date.now(),
-        fileName,
+        fileName: result.fileName,
         originalName: selectedFile.name,
         uploadTime: new Date().toISOString(),
-        status: 'processing',
-        size: selectedFile.size
+        status: 'completed', // Ya está procesado
+        size: selectedFile.size,
+        results: result.results // Resultados incluidos en la respuesta
       };
 
       const updatedImages = [newImage, ...uploadedImages];
       setUploadedImages(updatedImages);
       localStorage.setItem('uploadedImages', JSON.stringify(updatedImages));
 
-      // Simular procesamiento con Lambda + Rekognition
-      setTimeout(() => {
-        processImage(newImage.id);
-      }, 3000);
-
       // Limpiar formulario
       setSelectedFile(null);
       setPreviewUrl(null);
-      setUploadProgress(0);
       
     } catch (err) {
-      setError('Error al subir la imagen: ' + err.message);
+      setError('Error al procesar la imagen: ' + err.message);
+      console.error('Upload error:', err);
     } finally {
       setUploading(false);
+      setUploadProgress(0);
     }
   };
 
   const processImage = async (imageId) => {
-    // Simular resultados de Rekognition
-    const mockResults = {
-      labels: [
-        { Name: 'Person', Confidence: 98.5 },
-        { Name: 'Human', Confidence: 98.2 },
-        { Name: 'Face', Confidence: 95.8 },
-        { Name: 'Smile', Confidence: 87.3 },
-        { Name: 'Portrait', Confidence: 84.1 }
-      ],
-      faces: [
-        {
-          AgeRange: { High: 35, Low: 25 },
-          Gender: { Value: 'Female', Confidence: 96.2 },
-          Emotions: [
-            { Type: 'HAPPY', Confidence: 89.5 },
-            { Type: 'CALM', Confidence: 78.2 }
-          ]
-        }
-      ],
-      text: ['HELLO', 'WORLD', '2024'],
-      celebrities: [],
-      processedAt: new Date().toISOString()
-    };
-
-    // Actualizar estado de la imagen
-    const updatedImages = uploadedImages.map(img => 
-      img.id === imageId 
-        ? { ...img, status: 'completed', results: mockResults }
-        : img
-    );
-    
-    setUploadedImages(updatedImages);
-    localStorage.setItem('uploadedImages', JSON.stringify(updatedImages));
+    // Ya no es necesario - los resultados vienen en la respuesta del upload
+    return;
   };
 
   const viewResults = (image) => {
@@ -244,7 +208,7 @@ const RekognitionApp = () => {
 
             {/* Botón de subida */}
             <button
-              onClick={uploadToS3}
+              onClick={uploadToAPI}
               disabled={!selectedFile || uploading}
               className="w-full mt-6 bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-3 px-6 rounded-xl font-semibold hover:from-indigo-700 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl"
             >
@@ -290,21 +254,12 @@ const RekognitionApp = () => {
                           {new Date(image.uploadTime).toLocaleString()}
                         </p>
                         <div className="flex items-center gap-2 mt-2">
-                          {image.status === 'processing' ? (
-                            <>
-                              <div className="w-4 h-4 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
-                              <span className="text-sm text-indigo-600">Procesando...</span>
-                            </>
-                          ) : (
-                            <>
-                              <span className="text-green-600">✅</span>
-                              <span className="text-sm text-green-600">Completado</span>
-                            </>
-                          )}
+                          <span className="text-green-600">✅</span>
+                          <span className="text-sm text-green-600">Completado</span>
                         </div>
                       </div>
                       
-                      {image.status === 'completed' && (
+                      {image.results && (
                         <div className="flex gap-2">
                           <button
                             onClick={() => viewResults(image)}
