@@ -12,7 +12,7 @@ const RekognitionApp = () => {
 
   // Configuración de API (solo un endpoint)
   const API_CONFIG = {
-    uploadEndpoint: import.meta.env.VITE_UPLOAD_API || 'https://6vp429ekf5.execute-api.us-east-2.amazonaws.com/dev'
+    uploadEndpoint: import.meta.env.VITE_UPLOAD_API || 'https://f6xlt7r4i0.execute-api.us-east-2.amazonaws.com/dev'
   };
 
   useEffect(() => {
@@ -46,6 +46,16 @@ const RekognitionApp = () => {
     }
   };
 
+  // Función para convertir archivo a base64
+  const fileToBase64 = (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = error => reject(error);
+    });
+  };
+
   const uploadToAPI = async () => {
     if (!selectedFile) return;
 
@@ -54,30 +64,39 @@ const RekognitionApp = () => {
     setError(null);
 
     try {
-      // Crear FormData para enviar la imagen
-      const formData = new FormData();
-      formData.append('image', selectedFile);
-      formData.append('fileName', selectedFile.name);
+      // Convertir archivo a base64
+      const base64Data = await fileToBase64(selectedFile);
+      // Remover el prefijo "data:image/jpeg;base64," o similar
+      const base64Image = base64Data.split(',')[1];
       
       // Simular progreso mientras se procesa
       const progressInterval = setInterval(() => {
         setUploadProgress(prev => Math.min(prev + Math.random() * 10, 90));
       }, 500);
       
-      // Subir y procesar en el mismo endpoint
+      // Enviar como JSON con la imagen en base64
       const response = await fetch(API_CONFIG.uploadEndpoint, {
         method: 'POST',
-        body: formData
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          image: base64Image,
+          fileName: selectedFile.name
+        })
       });
 
       clearInterval(progressInterval);
       setUploadProgress(100);
 
       if (!response.ok) {
-        throw new Error(`Error ${response.status}: ${response.statusText}`);
+        const errorText = await response.text();
+        console.error('Response error:', errorText);
+        throw new Error(`Error ${response.status}: ${errorText}`);
       }
 
       const result = await response.json();
+      console.log('API Response:', result);
       
       // Agregar a la lista con resultados ya listos
       const newImage = {
@@ -127,6 +146,18 @@ const RekognitionApp = () => {
     URL.revokeObjectURL(url);
   };
 
+  const deleteImage = (imageId) => {
+    const updatedImages = uploadedImages.filter(img => img.id !== imageId);
+    setUploadedImages(updatedImages);
+    localStorage.setItem('uploadedImages', JSON.stringify(updatedImages));
+  };
+
+  const clearHistory = () => {
+    setUploadedImages([]);
+    localStorage.removeItem('uploadedImages');
+    setResults(null);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-4">
       <div className="max-w-6xl mx-auto">
@@ -155,6 +186,23 @@ const RekognitionApp = () => {
             <div 
               className="border-3 border-dashed border-indigo-200 rounded-2xl p-8 text-center hover:border-indigo-400 transition-colors cursor-pointer bg-indigo-50/50"
               onClick={() => document.getElementById('fileInput').click()}
+              onDragOver={(e) => {
+                e.preventDefault();
+                e.currentTarget.classList.add('border-indigo-400');
+              }}
+              onDragLeave={(e) => {
+                e.preventDefault();
+                e.currentTarget.classList.remove('border-indigo-400');
+              }}
+              onDrop={(e) => {
+                e.preventDefault();
+                e.currentTarget.classList.remove('border-indigo-400');
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                  const event = { target: { files: [files[0]] } };
+                  handleFileSelect(event);
+                }
+              }}
             >
               <input
                 id="fileInput"
@@ -172,6 +220,9 @@ const RekognitionApp = () => {
                     className="max-w-full max-h-64 mx-auto rounded-lg shadow-lg"
                   />
                   <p className="text-sm text-gray-600">{selectedFile?.name}</p>
+                  <p className="text-xs text-gray-500">
+                    Tamaño: {(selectedFile?.size / 1024 / 1024).toFixed(2)} MB
+                  </p>
                 </div>
               ) : (
                 <div className="space-y-4">
@@ -181,6 +232,9 @@ const RekognitionApp = () => {
                       Haz clic para seleccionar una imagen
                     </p>
                     <p className="text-sm text-gray-500 mt-2">
+                      O arrastra y suelta aquí
+                    </p>
+                    <p className="text-sm text-gray-500 mt-1">
                       Formatos: JPG, PNG, GIF (máx. 5MB)
                     </p>
                   </div>
@@ -194,7 +248,7 @@ const RekognitionApp = () => {
                 <div className="flex items-center gap-2">
                   <div className="w-4 h-4 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
                   <span className="text-sm font-medium text-gray-700">
-                    Subiendo... {Math.round(uploadProgress)}%
+                    Procesando imagen... {Math.round(uploadProgress)}%
                   </span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2">
@@ -215,7 +269,7 @@ const RekognitionApp = () => {
               {uploading ? (
                 <span className="flex items-center justify-center gap-2">
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  Subiendo...
+                  Procesando...
                 </span>
               ) : (
                 'Subir y Analizar'
@@ -225,16 +279,34 @@ const RekognitionApp = () => {
             {error && (
               <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2 text-red-700">
                 <span className="text-red-500">⚠️</span>
-                {error}
+                <div className="flex-1">
+                  {error}
+                </div>
+                <button 
+                  onClick={() => setError(null)}
+                  className="text-red-400 hover:text-red-600"
+                >
+                  ✕
+                </button>
               </div>
             )}
           </div>
 
           {/* Panel de Historial */}
           <div className="bg-white/80 backdrop-blur-sm rounded-3xl shadow-xl p-8 border border-white/20">
-            <h2 className="text-2xl font-bold text-gray-800 mb-6">
-              Historial de Análisis
-            </h2>
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold text-gray-800">
+                Historial de Análisis
+              </h2>
+              {uploadedImages.length > 0 && (
+                <button
+                  onClick={clearHistory}
+                  className="px-3 py-1 bg-red-100 text-red-700 rounded-lg text-sm hover:bg-red-200 transition-colors"
+                >
+                  Limpiar Todo
+                </button>
+              )}
+            </div>
 
             <div className="space-y-4 max-h-96 overflow-y-auto">
               {uploadedImages.length === 0 ? (
@@ -252,6 +324,9 @@ const RekognitionApp = () => {
                         </h3>
                         <p className="text-sm text-gray-500">
                           {new Date(image.uploadTime).toLocaleString()}
+                        </p>
+                        <p className="text-xs text-gray-400">
+                          {(image.size / 1024 / 1024).toFixed(2)} MB
                         </p>
                         <div className="flex items-center gap-2 mt-2">
                           <span className="text-green-600">✅</span>
@@ -273,6 +348,12 @@ const RekognitionApp = () => {
                           >
                             <span>💾</span>
                             Descargar
+                          </button>
+                          <button
+                            onClick={() => deleteImage(image.id)}
+                            className="px-3 py-1 bg-red-100 text-red-700 rounded-lg text-sm hover:bg-red-200 transition-colors"
+                          >
+                            🗑️
                           </button>
                         </div>
                       )}
@@ -300,12 +381,15 @@ const RekognitionApp = () => {
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
               {/* Etiquetas */}
               <div className="bg-blue-50 rounded-xl p-4">
-                <h3 className="font-semibold text-blue-800 mb-3">Etiquetas Detectadas</h3>
-                <div className="space-y-2">
-                  {results.labels?.slice(0, 5).map((label, idx) => (
+                <h3 className="font-semibold text-blue-800 mb-3 flex items-center gap-2">
+                  <span>🏷️</span>
+                  Etiquetas Detectadas
+                </h3>
+                <div className="space-y-2 max-h-40 overflow-y-auto">
+                  {results.labels?.slice(0, 8).map((label, idx) => (
                     <div key={idx} className="flex justify-between text-sm">
-                      <span className="text-gray-700">{label.Name}</span>
-                      <span className="text-blue-600 font-medium">
+                      <span className="text-gray-700 truncate">{label.Name}</span>
+                      <span className="text-blue-600 font-medium ml-2">
                         {label.Confidence.toFixed(1)}%
                       </span>
                     </div>
@@ -316,26 +400,41 @@ const RekognitionApp = () => {
               {/* Rostros */}
               {results.faces?.length > 0 && (
                 <div className="bg-green-50 rounded-xl p-4">
-                  <h3 className="font-semibold text-green-800 mb-3">Análisis Facial</h3>
+                  <h3 className="font-semibold text-green-800 mb-3 flex items-center gap-2">
+                    <span>👤</span>
+                    Análisis Facial
+                  </h3>
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
-                      <span className="text-gray-700">Edad:</span>
+                      <span className="text-gray-700">Rostros:</span>
                       <span className="text-green-600 font-medium">
-                        {results.faces[0].AgeRange.Low}-{results.faces[0].AgeRange.High}
+                        {results.faces.length}
                       </span>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-700">Género:</span>
-                      <span className="text-green-600 font-medium">
-                        {results.faces[0].Gender.Value}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-700">Emoción:</span>
-                      <span className="text-green-600 font-medium">
-                        {results.faces[0].Emotions[0].Type}
-                      </span>
-                    </div>
+                    {results.faces[0] && (
+                      <>
+                        <div className="flex justify-between">
+                          <span className="text-gray-700">Edad:</span>
+                          <span className="text-green-600 font-medium">
+                            {results.faces[0].AgeRange?.Low}-{results.faces[0].AgeRange?.High}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-700">Género:</span>
+                          <span className="text-green-600 font-medium">
+                            {results.faces[0].Gender?.Value}
+                          </span>
+                        </div>
+                        {results.faces[0].Emotions?.[0] && (
+                          <div className="flex justify-between">
+                            <span className="text-gray-700">Emoción:</span>
+                            <span className="text-green-600 font-medium">
+                              {results.faces[0].Emotions[0].Type}
+                            </span>
+                          </div>
+                        )}
+                      </>
+                    )}
                   </div>
                 </div>
               )}
@@ -343,33 +442,68 @@ const RekognitionApp = () => {
               {/* Texto */}
               {results.text?.length > 0 && (
                 <div className="bg-purple-50 rounded-xl p-4">
-                  <h3 className="font-semibold text-purple-800 mb-3">Texto Detectado</h3>
-                  <div className="space-y-1">
-                    {results.text.map((text, idx) => (
-                      <div key={idx} className="text-sm text-gray-700 bg-white px-2 py-1 rounded">
+                  <h3 className="font-semibold text-purple-800 mb-3 flex items-center gap-2">
+                    <span>📝</span>
+                    Texto Detectado
+                  </h3>
+                  <div className="space-y-1 max-h-40 overflow-y-auto">
+                    {results.text.slice(0, 10).map((text, idx) => (
+                      <div key={idx} className="text-sm text-gray-700 bg-white px-2 py-1 rounded truncate">
                         {text}
                       </div>
                     ))}
+                    {results.text.length > 10 && (
+                      <p className="text-xs text-purple-600 mt-2">
+                        +{results.text.length - 10} más...
+                      </p>
+                    )}
                   </div>
                 </div>
               )}
 
               {/* Información */}
               <div className="bg-orange-50 rounded-xl p-4">
-                <h3 className="font-semibold text-orange-800 mb-3">Información</h3>
+                <h3 className="font-semibold text-orange-800 mb-3 flex items-center gap-2">
+                  <span>ℹ️</span>
+                  Información
+                </h3>
                 <div className="space-y-2 text-sm">
                   <div className="text-gray-700">
                     <strong>Procesado:</strong><br />
-                    {new Date(results.processedAt).toLocaleString()}
+                    <span className="text-xs">
+                      {new Date(results.processedAt).toLocaleString()}
+                    </span>
                   </div>
                   <div className="text-gray-700">
-                    <strong>Total etiquetas:</strong> {results.labels?.length || 0}
+                    <strong>Etiquetas:</strong> {results.labels?.length || 0}
                   </div>
                   <div className="text-gray-700">
                     <strong>Rostros:</strong> {results.faces?.length || 0}
                   </div>
+                  <div className="text-gray-700">
+                    <strong>Textos:</strong> {results.text?.length || 0}
+                  </div>
                 </div>
               </div>
+            </div>
+
+            {/* Botón para descargar resultados completos */}
+            <div className="mt-6 text-center">
+              <button
+                onClick={() => {
+                  const dataStr = JSON.stringify(results, null, 2);
+                  const dataBlob = new Blob([dataStr], { type: 'application/json' });
+                  const url = URL.createObjectURL(dataBlob);
+                  const link = document.createElement('a');
+                  link.href = url;
+                  link.download = `analysis-results-${Date.now()}.json`;
+                  link.click();
+                  URL.revokeObjectURL(url);
+                }}
+                className="px-6 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-colors shadow-md"
+              >
+                📥 Descargar Análisis Completo
+              </button>
             </div>
           </div>
         )}
