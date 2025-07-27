@@ -12,7 +12,7 @@ const RekognitionApp = () => {
 
   // Configuración de API (solo un endpoint)
   const API_CONFIG = {
-    uploadEndpoint: import.meta.env.VITE_UPLOAD_API || 'https://6vp429ekf5.execute-api.us-east-2.amazonaws.com'
+    uploadEndpoint: import.meta.env.VITE_UPLOAD_API || 'https://6vp429ekf5.execute-api.us-east-2.amazonaws.com/dev'
   };
 
   useEffect(() => {
