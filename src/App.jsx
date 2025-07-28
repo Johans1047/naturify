@@ -106,6 +106,8 @@ const RekognitionApp = () => {
       const result = await response.json();
       console.log('API Response:', result);
 
+      const responseBody = JSON.parse(result.body);
+
       // Agregar a la lista con resultados ya listos
       const newImage = {
         id: Date.now(),
@@ -114,8 +116,16 @@ const RekognitionApp = () => {
         uploadTime: new Date().toISOString(),
         status: 'completed', // Ya está procesado
         size: selectedFile.size,
-        results: JSON.parse(result.body).results // Resultados incluidos en el elemento body de la respuesta
+        results: responseBody.results, // Resultados incluidos en el elemento body de la respuesta
+        deepResponse: JSON.parse(responseBody.deep_response) || ''
       };
+
+      const descriptionResponse = newImage.deepResponse.output.message.content[0].text;
+      const description = descriptionResponse.match(/"([^"]+)"/)[1];
+      console.log('New Image Object:', descriptionResponse);
+      
+      console.log(descriptionResponse.match(/"([^"]+)"/)[1]);
+
 
       const updatedImages = [newImage, ...uploadedImages];
       setUploadedImages(updatedImages);
@@ -144,7 +154,7 @@ const RekognitionApp = () => {
     const url = URL.createObjectURL(dataBlob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `results-${image.originalName}.json`;
+    link.download = `analysis-results-${Date.now()}-${image.originalName}.json`;
     link.click();
     URL.revokeObjectURL(url);
   };
@@ -400,70 +410,6 @@ const RekognitionApp = () => {
                 </div>
               </div>
 
-              {/* Rostros */}
-              {results.faces?.length > 0 && (
-                <div className="bg-green-50 rounded-xl p-4">
-                  <h3 className="font-semibold text-green-800 mb-3 flex items-center gap-2">
-                    <span>👤</span>
-                    Análisis Facial
-                  </h3>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-gray-700">Rostros:</span>
-                      <span className="text-green-600 font-medium">
-                        {results.faces.length}
-                      </span>
-                    </div>
-                    {results.faces[0] && (
-                      <>
-                        <div className="flex justify-between">
-                          <span className="text-gray-700">Edad:</span>
-                          <span className="text-green-600 font-medium">
-                            {results.faces[0].AgeRange?.Low}-{results.faces[0].AgeRange?.High}
-                          </span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-700">Género:</span>
-                          <span className="text-green-600 font-medium">
-                            {results.faces[0].Gender?.Value}
-                          </span>
-                        </div>
-                        {results.faces[0].Emotions?.[0] && (
-                          <div className="flex justify-between">
-                            <span className="text-gray-700">Emoción:</span>
-                            <span className="text-green-600 font-medium">
-                              {results.faces[0].Emotions[0].Type}
-                            </span>
-                          </div>
-                        )}
-                      </>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* Texto */}
-              {results.text?.length > 0 && (
-                <div className="bg-purple-50 rounded-xl p-4">
-                  <h3 className="font-semibold text-purple-800 mb-3 flex items-center gap-2">
-                    <span>📝</span>
-                    Texto Detectado
-                  </h3>
-                  <div className="space-y-1 max-h-40 overflow-y-auto">
-                    {results.text.slice(0, 10).map((text, idx) => (
-                      <div key={idx} className="text-sm text-gray-700 bg-white px-2 py-1 rounded truncate">
-                        {text}
-                      </div>
-                    ))}
-                    {results.text.length > 10 && (
-                      <p className="text-xs text-purple-600 mt-2">
-                        +{results.text.length - 10} más...
-                      </p>
-                    )}
-                  </div>
-                </div>
-              )}
-
               {/* Información */}
               <div className="bg-orange-50 rounded-xl p-4">
                 <h3 className="font-semibold text-orange-800 mb-3 flex items-center gap-2">
@@ -479,12 +425,6 @@ const RekognitionApp = () => {
                   </div>
                   <div className="text-gray-700">
                     <strong>Etiquetas:</strong> {results.labels?.length || 0}
-                  </div>
-                  <div className="text-gray-700">
-                    <strong>Rostros:</strong> {results.faces?.length || 0}
-                  </div>
-                  <div className="text-gray-700">
-                    <strong>Textos:</strong> {results.text?.length || 0}
                   </div>
                 </div>
               </div>

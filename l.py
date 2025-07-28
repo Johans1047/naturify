@@ -126,3 +126,28 @@ def main():
 
 if __name__ == "__main__":
     main()
+    
+    
+import cv2
+import numpy as np
+
+def enhance_landscape_lambda(image_bytes):
+    # Convertir bytes a imagen
+    nparr = np.frombuffer(image_bytes, np.uint8)
+    img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+    
+    # HDR simple con OpenCV
+    # 1. CLAHE para contraste
+    lab = cv2.cvtColor(img, cv2.COLOR_BGR2LAB)
+    clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8,8))
+    lab[:,:,0] = clahe.apply(lab[:,:,0])
+    
+    # 2. Aumentar saturación
+    enhanced = cv2.cvtColor(lab, cv2.COLOR_LAB2BGR)
+    
+    # 3. Ajuste gamma para paisajes
+    gamma = 0.8
+    enhanced = np.power(enhanced/255.0, gamma) * 255
+    enhanced = enhanced.astype(np.uint8)
+    
+    return enhanced
