@@ -73,6 +73,12 @@ const RekognitionApp = () => {
       const progressInterval = setInterval(() => {
         setUploadProgress(prev => Math.min(prev + Math.random() * 10, 90));
       }, 500);
+
+      console.log('Base64 Image:', base64Image.slice(0, 50) + '...'); // Log para depuración
+      console.log('File Name:', selectedFile.name);
+      console.log('File Size:', selectedFile.size, 'bytes');
+      console.log('File Type:', selectedFile.type);
+      console.log('API Endpoint:', API_CONFIG.uploadEndpoint);
       
       // Enviar como JSON con la imagen en base64
       const response = await fetch(API_CONFIG.uploadEndpoint, {
@@ -82,7 +88,9 @@ const RekognitionApp = () => {
         },
         body: JSON.stringify({
           image: base64Image,
-          fileName: selectedFile.name
+          fileName: selectedFile.name,
+          fileType: selectedFile.type,
+          fileSize: selectedFile.size
         })
       });
 
@@ -97,7 +105,7 @@ const RekognitionApp = () => {
 
       const result = await response.json();
       console.log('API Response:', result);
-      
+
       // Agregar a la lista con resultados ya listos
       const newImage = {
         id: Date.now(),
@@ -106,7 +114,7 @@ const RekognitionApp = () => {
         uploadTime: new Date().toISOString(),
         status: 'completed', // Ya está procesado
         size: selectedFile.size,
-        results: result.results // Resultados incluidos en la respuesta
+        results: JSON.parse(result.body).results // Resultados incluidos en el elemento body de la respuesta
       };
 
       const updatedImages = [newImage, ...uploadedImages];
@@ -124,11 +132,6 @@ const RekognitionApp = () => {
       setUploading(false);
       setUploadProgress(0);
     }
-  };
-
-  const processImage = async (imageId) => {
-    // Ya no es necesario - los resultados vienen en la respuesta del upload
-    return;
   };
 
   const viewResults = (image) => {
