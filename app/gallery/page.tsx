@@ -525,7 +525,7 @@ export default function GalleryPage() {
 
                 <div className="space-y-4">
                   <div>
-                    <h3 className="font-semibold mb-2 p5-text-contrast">Descripción IA</h3>
+                    <h3 className="font-semibold mb-2 p5-text-contrast">Descripción</h3>
                     <p className="p5-text-muted">{selectedImage.description}</p>
                   </div>
 
@@ -582,7 +582,7 @@ export default function GalleryPage() {
                         <div className="flex justify-between">
                           <span className="p5-text-muted">Estado:</span>
                           <span className="p5-text-contrast">
-                            {selectedImage.originalData.status || 'Completado'}
+                            {selectedImage.originalData.status ? 'Completado' : 'En proceso'}
                           </span>
                         </div>
                       </div>
