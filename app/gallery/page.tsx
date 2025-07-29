@@ -152,16 +152,12 @@ export default function GalleryPage() {
 
       const data = await response.json()
       
-      console.log('Raw API response:', data)
-    
       // Parsear correctamente la respuesta de Lambda
       let apiImages: ProcessedImageFromAPI[] = []
       
       if (data.body) {
         // El body viene como string, hay que parsearlo
         const bodyData = JSON.parse(data.body)
-        console.log('Parsed body:', bodyData)
-        
         if (bodyData.success && bodyData.items && Array.isArray(bodyData.items)) {
           apiImages = bodyData.items
         }
