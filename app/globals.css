@@ -1,0 +1,443 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 0 0% 3.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 3.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 3.9%;
+    --primary: 0 0% 9%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 0 0% 96.1%;
+    --secondary-foreground: 0 0% 9%;
+    --muted: 0 0% 96.1%;
+    --muted-foreground: 0 0% 45.1%;
+    --accent: 0 0% 96.1%;
+    --accent-foreground: 0 0% 9%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 89.8%;
+    --input: 0 0% 89.8%;
+    --ring: 0 0% 3.9%;
+    --chart-1: 12 76% 61%;
+    --chart-2: 173 58% 39%;
+    --chart-3: 197 37% 24%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 27 87% 67%;
+    --radius: 0.5rem;
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+
+    /* Natural Landscape Palette */
+    --nature-forest: #2d5016;
+    --nature-forest-light: #4a7c59;
+    --nature-sky: #1e3a8a;
+    --nature-sky-light: #3b82f6;
+    --nature-earth: #8b4513;
+    --nature-earth-light: #a0522d;
+    --nature-sun: #f59e0b;
+    --nature-sun-light: #fcd34d;
+    --nature-water: #0891b2;
+    --nature-water-light: #06b6d4;
+    --nature-stone: #374151;
+    --nature-stone-light: #6b7280;
+    --nature-white: #f8fafc;
+    --nature-black: #0f172a;
+    --nature-gray: #1e293b;
+    --nature-gray-light: #334155;
+  }
+  .dark {
+    --background: 0 0% 3.9%;
+    --foreground: 0 0% 98%;
+    --card: 0 0% 3.9%;
+    --card-foreground: 0 0% 98%;
+    --popover: 0 0% 3.9%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 0 0% 98%;
+    --primary-foreground: 0 0% 9%;
+    --secondary: 0 0% 14.9%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 0 0% 14.9%;
+    --muted-foreground: 0 0% 63.9%;
+    --accent: 0 0% 14.9%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 14.9%;
+    --input: 0 0% 14.9%;
+    --ring: 0 0% 83.1%;
+    --chart-1: 220 70% 50%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* Natural Landscape Theme - Angular Version */
+.persona5-theme {
+  font-family: "Orbitron", monospace;
+  background: linear-gradient(135deg, var(--nature-black) 0%, var(--nature-gray) 50%, var(--nature-stone) 100%);
+  color: var(--nature-white);
+}
+
+.p5-card {
+  background: linear-gradient(145deg, var(--nature-gray), var(--nature-gray-light));
+  border: 2px solid var(--nature-forest);
+  border-radius: 0;
+  clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 20px 100%, 0 calc(100% - 20px));
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+  color: var(--nature-white);
+}
+
+.p5-card h1,
+.p5-card h2,
+.p5-card h3,
+.p5-card h4,
+.p5-card h5,
+.p5-card h6 {
+  color: var(--nature-white);
+  text-shadow: 1px 1px 2px rgba(15, 23, 42, 0.8);
+}
+
+.p5-card p,
+.p5-card span,
+.p5-card div {
+  color: rgba(248, 250, 252, 0.9);
+}
+
+.p5-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(74, 124, 89, 0.3), transparent);
+  transition: left 0.5s;
+}
+
+.p5-card:hover::before {
+  left: 100%;
+}
+
+.p5-card:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 20px 40px rgba(45, 80, 22, 0.4);
+  border-color: var(--nature-sun);
+}
+
+.p5-button {
+  background: linear-gradient(45deg, var(--nature-forest), var(--nature-forest-light));
+  border: none;
+  color: var(--nature-white) !important;
+  font-family: "Orbitron", monospace;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  clip-path: polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  text-shadow: 1px 1px 2px rgba(15, 23, 42, 0.8);
+}
+
+.p5-button::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(252, 211, 77, 0.3), transparent);
+  transition: left 0.3s;
+}
+
+.p5-button:hover::before {
+  left: 100%;
+}
+
+.p5-button:hover {
+  transform: translateX(5px);
+  box-shadow: -5px 5px 15px rgba(45, 80, 22, 0.4);
+  background: linear-gradient(45deg, var(--nature-forest-light), var(--nature-sun));
+  color: var(--nature-white) !important;
+}
+
+.p5-input {
+  background: var(--nature-gray-light);
+  border: 2px solid var(--nature-forest);
+  color: var(--nature-white) !important;
+  font-family: "Orbitron", monospace;
+  clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
+}
+
+.p5-input::placeholder {
+  color: rgba(248, 250, 252, 0.6) !important;
+}
+
+.p5-input:focus {
+  border-color: var(--nature-sun);
+  box-shadow: 0 0 20px rgba(245, 158, 11, 0.5);
+  color: var(--nature-white) !important;
+}
+
+.p5-badge {
+  background: var(--nature-forest);
+  color: var(--nature-white) !important;
+  font-family: "Orbitron", monospace;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  clip-path: polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%);
+  text-shadow: 1px 1px 2px rgba(15, 23, 42, 0.8);
+}
+
+.p5-progress {
+  background: var(--nature-gray-light);
+  border: 1px solid var(--nature-forest);
+}
+
+.p5-progress-bar {
+  background: linear-gradient(90deg, var(--nature-forest), var(--nature-sun));
+  animation: pulse 2s infinite;
+}
+
+.p5-text-contrast {
+  color: var(--nature-white) !important;
+  text-shadow: 2px 2px 4px rgba(15, 23, 42, 0.9);
+}
+
+.p5-text-muted {
+  color: rgba(248, 250, 252, 0.7) !important;
+  text-shadow: 1px 1px 2px rgba(15, 23, 42, 0.8);
+}
+
+.p5-text-glow {
+  text-shadow: 0 0 10px var(--nature-sun), 2px 2px 4px rgba(15, 23, 42, 0.9);
+  color: var(--nature-sun) !important;
+}
+
+/* Natural Landscape Theme - Rounded Version */
+.nature-rounded .p5-card {
+  border-radius: 16px;
+  clip-path: none;
+  border: 2px solid var(--nature-forest);
+  background: linear-gradient(145deg, var(--nature-gray), var(--nature-gray-light));
+  box-shadow: 0 8px 32px rgba(45, 80, 22, 0.1);
+}
+
+.nature-rounded .p5-card:hover {
+  transform: translateY(-12px) scale(1.03);
+  box-shadow: 0 24px 48px rgba(45, 80, 22, 0.3);
+  border-color: var(--nature-sun);
+}
+
+.nature-rounded .p5-button {
+  border-radius: 12px;
+  clip-path: none;
+  background: linear-gradient(45deg, var(--nature-forest), var(--nature-forest-light));
+  box-shadow: 0 4px 16px rgba(45, 80, 22, 0.2);
+}
+
+.nature-rounded .p5-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(45, 80, 22, 0.4);
+  background: linear-gradient(45deg, var(--nature-forest-light), var(--nature-sun));
+}
+
+.nature-rounded .p5-input {
+  border-radius: 12px;
+  clip-path: none;
+  background: var(--nature-gray-light);
+  border: 2px solid var(--nature-forest);
+}
+
+.nature-rounded .p5-input:focus {
+  border-color: var(--nature-sun);
+  box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.1);
+}
+
+.nature-rounded .p5-badge {
+  border-radius: 8px;
+  clip-path: none;
+  background: var(--nature-forest);
+  box-shadow: 0 2px 8px rgba(45, 80, 22, 0.2);
+}
+
+/* Accent Colors for Different Elements */
+.accent-sky {
+  background: linear-gradient(45deg, var(--nature-sky), var(--nature-sky-light)) !important;
+  border-color: var(--nature-sky) !important;
+}
+
+.accent-water {
+  background: linear-gradient(45deg, var(--nature-water), var(--nature-water-light)) !important;
+  border-color: var(--nature-water) !important;
+}
+
+.accent-earth {
+  background: linear-gradient(45deg, var(--nature-earth), var(--nature-earth-light)) !important;
+  border-color: var(--nature-earth) !important;
+}
+
+.accent-sun {
+  background: linear-gradient(45deg, var(--nature-sun), var(--nature-sun-light)) !important;
+  border-color: var(--nature-sun) !important;
+  color: var(--nature-black) !important;
+}
+
+/* Improved contrast for text elements */
+.text-gray-600 {
+  color: rgba(248, 250, 252, 0.8) !important;
+}
+
+.text-gray-500 {
+  color: rgba(248, 250, 252, 0.7) !important;
+}
+
+.text-gray-400 {
+  color: rgba(248, 250, 252, 0.6) !important;
+}
+
+.text-gray-300 {
+  color: rgba(248, 250, 252, 0.9) !important;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  color: var(--nature-white) !important;
+  text-shadow: 2px 2px 4px rgba(15, 23, 42, 0.9);
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+.p5-hover-effect {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.p5-hover-effect:hover {
+  transform: translateX(10px);
+}
+
+.p5-border-animate {
+  position: relative;
+  overflow: hidden;
+}
+
+.p5-border-animate::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border: 2px solid var(--nature-forest);
+  clip-path: polygon(0 0, 0 0, 0 100%, 0 100%);
+  transition: clip-path 0.5s ease;
+}
+
+.p5-border-animate:hover::after {
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+}
+
+/* Category-specific styling */
+.category-mountains {
+  background: linear-gradient(45deg, var(--nature-stone), var(--nature-stone-light)) !important;
+}
+
+.category-water {
+  background: linear-gradient(45deg, var(--nature-sky), var(--nature-water)) !important;
+}
+
+.category-forest {
+  background: linear-gradient(45deg, var(--nature-forest), var(--nature-forest-light)) !important;
+}
+
+.category-sky {
+  background: linear-gradient(45deg, var(--nature-sky), var(--nature-sky-light)) !important;
+}
+
+.category-earth {
+  background: linear-gradient(45deg, var(--nature-earth), var(--nature-earth-light)) !important;
+}
+
+.category-sun {
+  background: linear-gradient(45deg, var(--nature-sun), var(--nature-sun-light)) !important;
+  color: var(--nature-black) !important;
+}
+
+/* Theme Toggle Button - Moved to bottom right */
+.theme-toggle {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 1000;
+  background: var(--nature-forest);
+  color: var(--nature-white);
+  border: 2px solid var(--nature-sun);
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 24px;
+  box-shadow: 0 4px 16px rgba(45, 80, 22, 0.3);
+}
+
+.theme-toggle:hover {
+  background: var(--nature-sun);
+  color: var(--nature-black);
+  transform: rotate(180deg) scale(1.1);
+  box-shadow: 0 8px 24px rgba(245, 158, 11, 0.4);
+}
